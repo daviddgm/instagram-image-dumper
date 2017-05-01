@@ -41,7 +41,19 @@ fi
 while :
 do
   more_available=$(jq ".more_available" media)
-  jq ".items[].images.standard_resolution.url" media | sed 's/\"\(.*\)\"/\1/g' >> urls
+  #jq ".items[].images.standard_resolution.url" media | sed 's/\"\(.*\)\"/\1/g' >> urls
+  surl=`jq ".items[].images.standard_resolution | select(.width > 400) | .url" media | sed 's/\"\(.*\)\"/\1/g'`
+  readarray array <<< "$surl"
+  for eu in "${array[@]}"
+  do
+    echo $eu
+    ddir=`echo $eu | sed 's/\/[^\/]*//4g'`
+    simg=`echo "${eu##*/}"`
+    if [ ! -z "$ddir" ];
+    then
+      echo $ddir"/"$simg >> urls
+    fi
+  done
   if [[ $more_available == "true" ]]
   then
     last_id=$(jq ".items[19].id" media | sed 's/\"\(.*\)\"/\1/g')
